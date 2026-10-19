@@ -53,6 +53,15 @@
             deleteDeck: "Delete deck",
             deleteDeckConfirm: "Delete the deck \"{deck}\" and its {n} cards? This can't be undone.",
             deckDeleted: "Deck deleted",
+            shareApp: "Share",
+            shareTitle: "Share Taboo",
+            shareMessage: "Scan the code with a phone's camera to open Taboo, or send the link.",
+            shareLink: "Share link",
+            copyLink: "Copy link",
+            linkCopied: "Link copied",
+            shareText: "Play Taboo, the party word game",
+            installApp: "Install app",
+            installHint: "To install it, open the page on the phone, then tap Share › Add to Home Screen (iPhone) or ⋮ › Install app (Android).",
             storageFailed: "Couldn't save on this device. The browser's storage may be full or turned off.",
             exportDecks: "Export all decks (JSON)",
             exported: "Exported {n} cards",
@@ -166,6 +175,15 @@
             deleteDeck: "Eliminar mazo",
             deleteDeckConfirm: "¿Eliminar el mazo \"{deck}\" y sus {n} cartas? No se puede deshacer.",
             deckDeleted: "Mazo eliminado",
+            shareApp: "Compartir",
+            shareTitle: "Compartir Tabú",
+            shareMessage: "Escanea el código con la cámara de un teléfono para abrir Tabú, o envía el enlace.",
+            shareLink: "Compartir enlace",
+            copyLink: "Copiar enlace",
+            linkCopied: "Enlace copiado",
+            shareText: "Juega Tabú, el juego de palabras para fiestas",
+            installApp: "Instalar app",
+            installHint: "Para instalarla, abre la página en el teléfono y toca Compartir › Agregar a inicio (iPhone) o ⋮ › Instalar app (Android).",
             storageFailed: "No se pudo guardar en este dispositivo. El almacenamiento del navegador puede estar lleno o desactivado.",
             exportDecks: "Exportar todos los mazos (JSON)",
             exported: "{n} cartas exportadas",
@@ -279,6 +297,15 @@
             deleteDeck: "Excluir baralho",
             deleteDeckConfirm: "Excluir o baralho \"{deck}\" e suas {n} cartas? Isso não pode ser desfeito.",
             deckDeleted: "Baralho excluído",
+            shareApp: "Compartilhar",
+            shareTitle: "Compartilhar Tabu",
+            shareMessage: "Escaneie o código com a câmera de um celular para abrir o Tabu, ou envie o link.",
+            shareLink: "Compartilhar link",
+            copyLink: "Copiar link",
+            linkCopied: "Link copiado",
+            shareText: "Jogue Tabu, o jogo de palavras para festas",
+            installApp: "Instalar app",
+            installHint: "Para instalar, abra a página no celular e toque em Compartilhar › Adicionar à Tela de Início (iPhone) ou ⋮ › Instalar app (Android).",
             storageFailed: "Não foi possível salvar neste dispositivo. O armazenamento do navegador pode estar cheio ou desativado.",
             exportDecks: "Exportar todos os baralhos (JSON)",
             exported: "{n} cartas exportadas",
@@ -437,6 +464,17 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
+    // The page's own address (without index.html, query or hash), so shared links work wherever the app is hosted.
+    const APP_URL = new URL('./', location.href).href;
+
+    function qrCodeSvg(text) {
+        if (!window.qrcode) return ''; // the CDN script didn't load (offline on first visit)
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    }
+
     function vibrate(pattern) {
         if (navigator.vibrate) navigator.vibrate(pattern);
     }
@@ -512,6 +550,13 @@
             const importInputRef = ref(null);
             const cardSheet = reactive({ show: false, originalWord: null, word: '', difficulty: 1, taboo: [] });
             const preview = reactive({ show: false, title: '', cards: [], index: 0 });
+
+            // Share sheet
+            const shareSheet = ref(false);
+            const shareUrlRef = ref(null);
+            const qrSvg = qrCodeSvg(APP_URL);
+            const canShare = !!navigator.share;
+            const installEvent = ref(null); // Chrome/Edge/Android only; iOS has no install prompt
 
             const dialog = reactive({ show: false, type: 'alert', title: '', message: '', inputValue: '', placeholder: '', okText: '', danger: false, resolve: null });
             const dialogInputRef = ref(null);
@@ -632,6 +677,38 @@
                 cards.forEach(c => merged.set(key(c), c));
                 setCards([...merged.values()]);
                 showToast(t('imported', { n: cards.length }));
+            };
+
+            // ------------------------------------------------------------ sharing
+
+            const shareLink = async () => {
+                try {
+                    await navigator.share({ title: t('gameTitle'), text: t('shareText'), url: APP_URL });
+                } catch (e) { /* cancelled */ }
+            };
+
+            const copyLink = async () => {
+                try {
+                    await navigator.clipboard.writeText(APP_URL);
+                    showToast(t('linkCopied'));
+                } catch (e) {
+                    // No clipboard access: select the link so it can be copied by hand.
+                    shareUrlRef.value?.focus();
+                    shareUrlRef.value?.select();
+                }
+            };
+
+            // Keep the browser's install prompt so the share sheet can offer it with one tap.
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                installEvent.value = e;
+            });
+            window.addEventListener('appinstalled', () => { installEvent.value = null; });
+
+            const installApp = () => {
+                const e = installEvent.value;
+                installEvent.value = null; // each prompt can only be used once
+                if (e) e.prompt();
             };
 
             // ------------------------------------------------------------ play tab
@@ -1035,6 +1112,7 @@
                 canStart, startHint, rulesSummary,
                 t, difficultyName, formatDelta, initials,
                 exportDecks, importInputRef, chooseImportFile, importDecks,
+                appUrl: APP_URL, shareSheet, shareUrlRef, qrSvg, canShare, installEvent, shareLink, copyLink, installApp,
                 addPlayer, removePlayer, movePlayer, previewSound,
                 createDeck, deleteDeck, openCard, closeCardSheet, addTabooField, saveCard, deleteCard,
                 previewDraft, previewDeck, stepPreview, onSwipeStart, onSwipeEnd,

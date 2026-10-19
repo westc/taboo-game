@@ -7,6 +7,7 @@ A pass-the-phone Taboo party game, built as a Progressive Web App that runs enti
 - **No server, no sign-in.** Decks and cards are stored in the browser's `localStorage` on the phone, tablet or computer you play on.
 - **Static PWA** in [`docs/`](docs), hosted on GitHub Pages (Vue 3 from a CDN, no build step). It works offline once loaded, and phones can install it to the home screen.
 - **Import / export** decks as JSON from **Settings → Data**. The file format is the same one the [Google Sheets version of Taboo](https://github.com/westc/gsheets-taboo-game) exports, so you can move decks between the two.
+- **Share** with the button at the top right: it shows a QR code for the page plus the link, with buttons to share or copy it and instructions for installing the app. On Chrome and Android it also offers a one-tap **Install app** button.
 
 ## Decks
 

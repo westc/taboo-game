@@ -1,7 +1,7 @@
 // Offline support: the app shell and CDN libraries are cached; card data lives in the app's localStorage.
 // Bump VERSION whenever you deploy changes so phones pick up the new files.
 // The prefix must not start with "taboo-": the Google Sheets version of Taboo deletes those caches.
-const VERSION = 'tabooGame-v1';
+const VERSION = 'tabooGame-v2';
 
 const APP_SHELL = [
     './',
@@ -13,6 +13,7 @@ const APP_SHELL = [
     'icons/icon-192.png',
     'icons/apple-touch-icon.png',
     'https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js',
+    'https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/qrcode.min.js',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'
 ];
 
