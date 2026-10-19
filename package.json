@@ -1,0 +1,8 @@
+{
+  "name": "taboo-game",
+  "private": true,
+  "description": "Taboo PWA (GitHub Pages) that stores its decks on the device, with JSON import and export",
+  "scripts": {
+    "serve": "python3 -m http.server 8000 -d docs"
+  }
+}
